@@ -60,6 +60,25 @@ func checkoutBook(c *gin.Context){
 	c.IndentedJSON(http.StatusOK, book)
 }
 
+func returnBook(c *gin.Context) {
+	id, ok := c.GetQuery("id")
+
+	if !ok {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Missing id query parameter."})
+		return
+	}
+
+	book, err := getBookById(id)
+	
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found."})
+		return
+	}
+
+	book.Quantity += 1
+	c.IndentedJSON(http.StatusOK, book)
+}
+
 func getBookById(id string) (*book, error){
 	for i, b := range books {
 		if b.ID == id {
@@ -86,6 +105,7 @@ func main(){
 	router.GET("/books", getBooks)
 	router.POST("/books", createBook)
 	router.GET("/books/:id", bookById)
-	router.PATCH("/checkout", checkoutBook)
+	router.PATCH("/checkout", checkoutBook) //PATCH request is updating something, similar do PUT in node.js
+	router.PATCH("/return", returnBook)
 	router.Run("localhost:8080")
 }
